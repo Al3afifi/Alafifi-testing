@@ -44,6 +44,51 @@ function get() {
 
 }
 
+function getAll() {
+  var users_ref = database.ref('users');
+  var result = "";
+  users_ref.on('value', function(snapshot) {
+      snapshot.forEach(function(childSnapshot) {
+        var child_data = childSnapshot.val();
+        result += child_data.username + "\n";
+        result += " - Email:          ";
+        var email_max_blocked = child_data.email.indexOf("@");
+        if(email_max_blocked == -1){
+          email_max_blocked = child_data.email.length;
+        }
+        else{
+          email_max_blocked += 1;
+        }
+        result += child_data.email.substring(0,1);
+        if(email_max_blocked > 2){
+          for(var i = 0; i < email_max_blocked-2; i++){
+            result += "*";
+          }
+          result += child_data.email.substring(email_max_blocked-2,email_max_blocked-1);
+        }
+        else{
+          result += "*";
+        }
+        if(email_max_blocked == child_data.email.length){
+          result += "@gmail.com";
+        }
+        else{
+          result += child_data.email.substring(email_max_blocked-1);
+        }
+        result += "\n";
+        result += " - Password:       ";
+        for(var i = 0; i < child_data.password.length; i++){
+          result += "*";
+        }
+        result += "\n";
+        result += " - Say-Something:  " + child_data.say_something + "\n";
+        result += " - Favourite-Food: " + child_data.favourite_food + "\n";
+        console.log(result);
+      });
+  });
+  document.getElementById("results").innerText=result;
+}
+
 function update() {
   var username = document.getElementById('username').value
   var email = document.getElementById('email').value
@@ -61,8 +106,18 @@ function update() {
 
 function remove() {
   var username = document.getElementById('username').value
+  var password_new = document.getElementById('password').value
 
-  database.ref('users/' + username).remove()
+  var user_ref = database.ref('users/' + username)
+  user_ref.on('value', function(snapshot) {
+    var data = snapshot.val()
 
-  alert('deleted')
+    if(data.password == password_new){
+      user_ref.remove()
+
+      alert('deleted')
+    }
+
+  })
+
 }
